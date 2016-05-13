@@ -94,7 +94,10 @@ the reducer functions (e.g. ``Reducer.count()`` returns
 reducer shortcuts.
 
 To write your own reducer, make sure to include a full JavaScript
-function body (i.e. ``function(){ ... }``). ## Caveats
+function body (i.e. ``function(){ ... }``).
+
+Caveats
+-------
 
 ``.filter(...)`` automatically transforms whatever is within the
 parenthesis' into ``function(e){ return ... }``. This library does
