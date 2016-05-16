@@ -43,7 +43,7 @@ This is simple and fast to do with this library.
               .filter('e.property.F == "hello"')\
               .group_by(
                   keys=[
-                      "new Date(event.time)).toISOString().split('T')[0]",
+                      "new Date(e.time)).toISOString().split('T')[0]",
                       "e.property.C"
                   ],
                   accumulator=Reducer.count())
@@ -68,7 +68,7 @@ to just 1.
               .filter('e.property.F == "hello"')\
               .group_by_user(
                   keys=[
-                      "new Date(event.time)).toISOString().split('T')[0]",
+                      "new Date(e.time)).toISOString().split('T')[0]",
                       "e.property.C"
                   ],
                   accumulator="function(){ return 1;}")\
@@ -105,7 +105,7 @@ equivalent JavaScript will be.
 .. code:: python
 
     >>> query.query_plan()
-    'function main() { return Events(params).filter(function(e){return e.property.B == 2}).filter(function(e){return e.property.F == "hello"}).groupByUser([function(e){return new Date(event.time)).toISOString().split(\'T\')[0]},function(e){return e.property.C}], function(){ return 1;}).groupBy([function(e){return e.key.slice(1)}], mixpanel.reducer.count()); }'
+    'function main() { return Events(params).filter(function(e){return e.property.B == 2}).filter(function(e){return e.property.F == "hello"}).groupByUser([function(e){return new Date(e.time)).toISOString().split(\'T\')[0]},function(e){return e.property.C}], function(){ return 1;}).groupBy([function(e){return e.key.slice(1)}], mixpanel.reducer.count()); }'
 
 This can be quite helpful during debugging.
 
