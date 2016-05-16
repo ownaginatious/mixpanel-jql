@@ -1,10 +1,10 @@
 from contextlib import closing
+import gzip
 import json
 import ijson
 import requests
 from requests.auth import HTTPBasicAuth
-import gzip
-
+import six
 
 class JQLError(Exception):
     pass
@@ -32,6 +32,7 @@ class Reducer(object):
     def object_merge(accessor):
         return "mixpanel.reducer.object_merge(%s)" % accessor
 
+
 def _f(e):
     return "function(e){return %s}" % e
 
@@ -54,7 +55,7 @@ class JQL(object):
         """
         self.api_secret = api_secret
         self.params = params
-        self.operations = []
+        self.operations = ()
         if events and people:
             self.source = "join(Events(params), People())"
         elif events:
@@ -64,32 +65,49 @@ class JQL(object):
         else:
             raise JQLError("No data source specified ('Event' or 'People')")
 
+    def _clone(self):
+        jql = JQL(self.api_secret, self.params)
+        jql.operations = self.operations
+        return jql
+
     def filter(self, f):
-        self.operations += ["filter(%s)" % _f(f)]
-        return self
+        jql = self._clone()
+        jql.operations += ("filter(%s)" % _f(f),)
+        return jql
 
     def map(self, f):
-        self.operations += ["map(%s)" % _f(f)]
-        return self
+        jql = self._clone()
+        jql.operations += ("map(%s)" % _f(f),)
+        return jql
 
     def group_by(self, keys, accumulator):
-        self.operations += ["groupBy([%s], %s)"
-            % (",".join(_f(k) for k in keys), accumulator)]
-        return self
+        if isinstance(keys, str) or isinstance(keys, six.text_type):
+            keys = [keys]
+        jql = self._clone()
+        jql.operations += ("groupBy([%s], %s)"
+                           % (",".join(_f(k) for k in keys), accumulator),)
+        return jql
 
     def group_by_user(self, keys, accumulator):
-        self.operations += ["groupByUser([%s], %s)"
-            % (",".join(_f(k) for k in keys), accumulator)]
-        return self
+        if isinstance(keys, str) or isinstance(keys, six.text_type):
+            keys = [keys]
+        jql = self._clone()
+        jql.operations += ("groupByUser([%s], %s)"
+                           % (",".join(_f(k) for k in keys), accumulator),)
+        return jql
+
+    def query_plan(self):
+        script = "function main() { return %s%s; }" %\
+           (self.source, "".join(".%s" % i for i in self.operations))
+        return script
 
     def send(self):
         script = "function main() { return %s%s; }" %\
             (self.source, "".join(".%s" % i for i in self.operations))
         with closing(requests.post(self.ENDPOINT % self.VERSION,
-                                   auth=HTTPBasicAuth(self.api_secret,''),
+                                   auth=HTTPBasicAuth(self.api_secret, ''),
                                    data={'params': json.dumps(self.params),
-                                         'script': script
-                                        },
+                                         'script': self.query_plan()},
                                    stream=True)) as resp:
             resp.raise_for_status()
             data_stream = resp.raw

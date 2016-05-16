@@ -33,12 +33,12 @@ This is simple and fast to do with this library.
     api_secret = '...'
 
     params = {
-        'event_selectors': [{event: "A"}],
+        'event_selectors': [{'event': "A"}],
         'from_date': '2016-04-01',
         'to_date': '2016-04-30'
     }
 
-    query = es.request(api_secret, params)\
+    query = JQL(api_secret, params)\
               .filter('e.property.B == 2')\
               .filter('e.property.F == "hello"')\
               .group_by(
@@ -63,7 +63,7 @@ to just 1.
 
 .. code:: python
 
-    query = es.request(api_secret, params)\
+    query = JQL(api_secret, params)\
               .filter('e.property.B == 2')\
               .filter('e.property.F == "hello"')\
               .group_by_user(
@@ -95,6 +95,18 @@ reducer shortcuts.
 
 To write your own reducer, make sure to include a full JavaScript
 function body (i.e. ``function(){ ... }``).
+
+How do I see what the final script sent to Mixpanel will be?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the ``.query_plan()`` method on your JQL query to view what the
+equivalent JavaScript will be.
+
+.. code:: python
+    >>> query.query_plan()
+    'function main() { return Events(params).filter(function(e){return e.property.B == 2}).filter(function(e){return e.property.F == "hello"}).groupByUser([function(e){return new Date(event.time)).toISOString().split(\'T\')[0]},function(e){return e.property.C}], function(){ return 1;}).groupBy([function(e){return e.key.slice(1)}], mixpanel.reducer.count()); }'
+
+This can be quite helpful during debugging.
 
 Caveats
 -------
