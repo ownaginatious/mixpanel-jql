@@ -103,6 +103,7 @@ Use the ``.query_plan()`` method on your JQL query to view what the
 equivalent JavaScript will be.
 
 .. code:: python
+
     >>> query.query_plan()
     'function main() { return Events(params).filter(function(e){return e.property.B == 2}).filter(function(e){return e.property.F == "hello"}).groupByUser([function(e){return new Date(event.time)).toISOString().split(\'T\')[0]},function(e){return e.property.C}], function(){ return 1;}).groupBy([function(e){return e.key.slice(1)}], mixpanel.reducer.count()); }'
 
