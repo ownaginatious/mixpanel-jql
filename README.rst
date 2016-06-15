@@ -15,16 +15,67 @@ your terminal:
 
 ``pip install mixpanel-jql``
 
-Example
--------
+Simple example
+--------------
+
+Let's do a simple count of our number of 'X' events over each day of May 2016. Our key for grouping will be the date the event was sent to Mixpanel in the format 'YYYY-MM-DD'. We can get that from our event's `time` property by specifying our key as `new Date(e.time).toISOString().split('T')[0]`.
+
+This is simple and fast to do with this library.
+
+.. code:: python
+
+    from mixpanel_jql import JQL, Reducer
+
+    api_secret = '...'
+
+    params = {
+        'event_selectors': [{'event': "X"}],
+        'from_date': '2016-05-01',
+        'to_date': '2016-05-31'
+    }
+
+    query = JQL(api_secret, params)\
+              .group_by(
+                  keys=[
+                      "new Date(e.time).toISOString().split('T')[0]",
+                  ],
+                  accumulator=Reducer.count())
+
+    for row in query.send():
+        date = row['key']
+        value = row['value']
+        print("[%s] => %d" % (date, value))
+    # [2016-05-01] => 302
+    # [2016-05-02] => 1102
+    # ...
+    # [2016-05-31] => 120
+
+But what if we only want to count unique events? That is to say, what if we care about how many users spawned each event per day and not just the overal number of times the event occurred?
+
+With some minor modification to our previous code, we can achieve this:
+
+.. code:: python
+
+    query = JQL(api_secret, params)\
+              .group_by_user(
+                  keys=[
+                      "new Date(e.time).toISOString().split('T')[0]",
+                  ],
+                  accumulator="function(){ return 1;}")\
+              .group_by(
+                  keys=["e.key.slice(1)"],
+                  accumulator=Reducer.count())
+
+We replace our `accumulator` keyward argument with a JavaScript function returning `1`, since each user will only be counted for once. `group_by_user` also adds the user ID into the key of our results. We can regroup our results by slicing that detail off with `e.key.slice(1)` and recounting.
+
+More advanced examples
+----------------------
 
 Let's assume we want to count all events 'A' with a property 'B' that is
 equal to 2 and a property F that is equal to "hello". Events 'A' also
 have a property 'C', which is some random string value. We want the
 results grouped and tallied by values of 'C' to see how many property
 'C' events occurred over each day in the month of April 2016.
-
-This is simple and fast to do with this library.
 
 .. code:: python
 
@@ -43,7 +94,7 @@ This is simple and fast to do with this library.
               .filter('e.property.F == "hello"')\
               .group_by(
                   keys=[
-                      "new Date(e.time)).toISOString().split('T')[0]",
+                      "new Date(e.time).toISOString().split('T')[0]",
                       "e.property.C"
                   ],
                   accumulator=Reducer.count())
@@ -68,7 +119,7 @@ to just 1.
               .filter('e.property.F == "hello"')\
               .group_by_user(
                   keys=[
-                      "new Date(e.time)).toISOString().split('T')[0]",
+                      "new Date(e.time).toISOString().split('T')[0]",
                       "e.property.C"
                   ],
                   accumulator="function(){ return 1;}")\
@@ -96,7 +147,7 @@ reducer shortcuts.
 To write your own reducer, make sure to include a full JavaScript
 function body (i.e. ``function(){ ... }``).
 
-How do I see what the final script sent to Mixpanel will be?
+How do I see what the final JavaScript sent to Mixpanel will be?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Use the ``.query_plan()`` method on your JQL query to view what the
