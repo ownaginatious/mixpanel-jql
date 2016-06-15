@@ -50,7 +50,7 @@ This is simple and fast to do with this library.
     # ...
     # [2016-05-31] => 120
 
-But what if we only want to count unique events? That is to say, what if we care about how many users spawned each event per day and not just the overal number of times the event occurred?
+But what if we only want to count unique events? That is to say, what if we care about how many users spawned each event per day and not just the overall number of times the event occurred?
 
 With some minor modification to our previous code, we can achieve this:
 
