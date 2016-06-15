@@ -18,7 +18,7 @@ your terminal:
 Simple example
 --------------
 
-Let's do a simple count of our number of 'X' events over each day of May 2016. Our key for grouping will be the date the event was sent to Mixpanel in the format 'YYYY-MM-DD'. We can get that from our event's `time` property by specifying our key as `new Date(e.time).toISOString().split('T')[0]`.
+Let's do a simple count of our number of 'X' events over each day of May 2016. Our key for grouping will be the date the event was sent to Mixpanel in the format ``YYYY-MM-DD``. We can get that from our event's ``time`` property by specifying our key as ``new Date(e.time).toISOString().split('T')[0]``.
 
 This is simple and fast to do with this library.
 
@@ -66,7 +66,7 @@ With some minor modification to our previous code, we can achieve this:
                   keys=["e.key.slice(1)"],
                   accumulator=Reducer.count())
 
-We replace our `accumulator` keyward argument with a JavaScript function returning `1`, since each user will only be counted for once. `group_by_user` also adds the user ID into the key of our results. We can regroup our results by slicing that detail off with `e.key.slice(1)` and recounting.
+We replace our ``accumulator`` keyward argument with a JavaScript function returning ``1``, since each user will only be counted for once. ``group_by_user`` also adds the user ID into the key of our results. We can regroup our results by slicing that detail off with ``e.key.slice(1)`` and recounting.
 
 More advanced examples
 ----------------------
