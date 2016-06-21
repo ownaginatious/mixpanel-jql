@@ -1,10 +1,11 @@
 from contextlib import closing
-import gzip
 import json
+from itertools import chain, islice
 import ijson
 import requests
 from requests.auth import HTTPBasicAuth
 import six
+
 
 class JQLError(Exception):
     pass
@@ -36,6 +37,21 @@ class Reducer(object):
 def _f(e):
     return "function(e){return %s}" % e
 
+
+class RequestsStreamWrapper(object):
+    """
+    A wrapper around a requests response payload for converting
+    the returned generator into a file-like object.
+    """
+
+    def __init__(self, resp):
+        self.data = chain.from_iterable(resp.iter_content())
+
+    def read(self, n):
+        if six.PY3:
+            return bytes(islice(self.data, None, n))
+        else:
+            return "".join(islice(self.data, None, n))
 
 class JQL(object):
 
@@ -110,9 +126,7 @@ class JQL(object):
                                          'script': self.query_plan()},
                                    stream=True)) as resp:
             resp.raise_for_status()
-            data_stream = resp.raw
-            # The stream may be zipped; we must stream it through an unzipper.
-            if resp.headers['Content-Encoding'] == 'gzip':
-                data_stream = gzip.GzipFile(fileobj=data_stream, mode='rb')
-            for row in ijson.items(data_stream, 'item'):
+            for row in ijson.items(RequestsStreamWrapper(resp), 'item'):
                 yield row
+
+
