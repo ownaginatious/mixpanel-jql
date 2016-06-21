@@ -42,7 +42,7 @@ This is simple and fast to do with this library.
                   accumulator=Reducer.count())
 
     for row in query.send():
-        date = row['key']
+        date = row['key'][0]
         value = row['value']
         print("[%s] => %d" % (date, value))
     # [2016-05-01] => 302
@@ -100,7 +100,7 @@ results grouped and tallied by values of 'C' to see how many property
                   accumulator=Reducer.count())
               
     for row in query.send():
-        date, c = row['key']
+        date, c = row['key'][0]
         value = row['value']
         print("[%s] %s => %d" % (date, c, value))
     # [2016-04-01] abc => 3
