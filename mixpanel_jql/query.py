@@ -53,6 +53,7 @@ class RequestsStreamWrapper(object):
         else:
             return "".join(islice(self.data, None, n))
 
+
 class JQL(object):
 
     ENDPOINT = 'https://mixpanel.com/api/%s/jql'
@@ -128,5 +129,4 @@ class JQL(object):
             resp.raise_for_status()
             for row in ijson.items(RequestsStreamWrapper(resp), 'item'):
                 yield row
-
 
