@@ -119,8 +119,6 @@ class JQL(object):
         return script
 
     def send(self):
-        script = "function main() { return %s%s; }" %\
-            (self.source, "".join(".%s" % i for i in self.operations))
         with closing(requests.post(self.ENDPOINT % self.VERSION,
                                    auth=HTTPBasicAuth(self.api_secret, ''),
                                    data={'params': json.dumps(self.params),
