@@ -98,7 +98,7 @@ results grouped and tallied by values of 'C' to see how many property
                       "e.property.C"
                   ],
                   accumulator=Reducer.count())
-              
+
     for row in query.send():
         date, c = row['key'][0]
         value = row['value']
@@ -148,7 +148,7 @@ To write your own reducer, make sure to include a full JavaScript
 function body (i.e. ``function(){ ... }``).
 
 How do I see what the final JavaScript sent to Mixpanel will be?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Use the ``.query_plan()`` method on your JQL query to view what the
 equivalent JavaScript will be.
