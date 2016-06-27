@@ -84,6 +84,7 @@ class JQL(object):
 
     def _clone(self):
         jql = JQL(self.api_secret, self.params)
+        jql.source = self.source
         jql.operations = self.operations
         return jql
 
