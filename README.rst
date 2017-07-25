@@ -90,8 +90,8 @@ results grouped and tallied by values of 'C' to see how many property
     }
 
     query = JQL(api_secret, params)\
-              .filter('e.property.B == 2')\
-              .filter('e.property.F == "hello"')\
+              .filter('e.properties.B == 2')\
+              .filter('e.properties.F == "hello"')\
               .group_by(
                   keys=[
                       "new Date(e.time).toISOString().split('T')[0]",
@@ -115,8 +115,8 @@ to just 1.
 .. code:: python
 
     query = JQL(api_secret, params)\
-              .filter('e.property.B == 2')\
-              .filter('e.property.F == "hello"')\
+              .filter('e.properties.B == 2')\
+              .filter('e.properties.F == "hello"')\
               .group_by_user(
                   keys=[
                       "new Date(e.time).toISOString().split('T')[0]",
@@ -131,7 +131,7 @@ Why are your filters not joined with ``&&``?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We could have also combined our ``.filter(...)`` methods into 1 method
-by doing, ``.filter('e.property.B == 2 && e.property.F == "hello"')``.
+by doing, ``.filter('e.properties.B == 2 && e.properties.F == "hello"')``.
 Successive ``.filter(...)`` expressions are automatically ``&&``'ed. The
 method of expression you choose is stylistic.
 
