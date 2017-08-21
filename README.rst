@@ -155,7 +155,7 @@ equivalent JavaScript will be.
 
 .. code:: python
 
-    >>> query.query_plan()
+    >>> str(query)
     'function main() { return Events(params).filter(function(e){return e.property.B == 2}).filter(function(e){return e.property.F == "hello"}).groupByUser([function(e){return new Date(e.time)).toISOString().split(\'T\')[0]},function(e){return e.property.C}], function(){ return 1;}).groupBy([function(e){return e.key.slice(1)}], mixpanel.reducer.count()); }'
 
 This can be quite helpful during debugging.
@@ -164,9 +164,25 @@ Caveats
 -------
 
 ``.filter(...)`` automatically transforms whatever is within the
-parenthesis' into ``function(e){ return ... }``. This library does
-**not** support the ``properties.x`` shortcut syntax and requires
-``e.properties.x``.
+parenthesis' into ``function(e){ return ... }``.
+
+To override that behavior, and use things like the ``properties.x``
+shortcut syntax, use the ``raw(...)`` wrapper to insert whatever
+JavaScript you want into the ``filter``, ``map`` .etc parameters.
+
+.. code:: python
+
+    query = JQL(api_secret, params)\
+              .filter(raw(
+                  " function(e) {"
+                  "   if (e.x > 3) {"
+                  "     return true;"
+                  "   } else {"
+                  "     return false;"
+                  "   }"
+                  " )"
+              ))\
+              .filter('e.properties.F == "hello"')\
 
 This library cannot easily express everything possible in Mixpanel's JQL
 language, but does try to simplify the general cases. If you have some
