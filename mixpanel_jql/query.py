@@ -118,6 +118,11 @@ class JQL(object):
         jql.operations += ("map(%s)" % _f(f),)
         return jql
 
+    def reduce(self, accumulator):
+        jql = self._clone()
+        jql.operations += ("reduce(%s)" % (accumulator),)
+        return jql
+
     def group_by(self, keys, accumulator):
         if isinstance(keys, str) or isinstance(keys, six.text_type):
             keys = [keys]
