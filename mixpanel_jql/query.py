@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+
+
 from contextlib import closing
 import json
 from itertools import chain, islice
@@ -6,9 +9,19 @@ import requests
 from requests.auth import HTTPBasicAuth
 import six
 
+from .exceptions import JQLError, InvalidJavaScriptText
 
-class JQLError(Exception):
-    pass
+
+class RawJavaScript(object):
+
+    def __init__(self, java_script):
+        if not isinstance(java_script, (str, six.text_type)):
+            raise InvalidJavaScriptText(
+                "Must be a text type (str, unicode)")
+        self.java_script = java_script
+
+    def __repr__(self):
+        return "RawJavaScript('%s')" % self.java_script
 
 
 class Reducer(object):
@@ -35,7 +48,17 @@ class Reducer(object):
 
 
 def _f(e):
+    if not isinstance(e, (RawJavaScript, str, six.text_type)):
+        raise InvalidJavaScriptText(
+            "Must be a text type (str, unicode) or wrapped "
+            "as raw(str||unicode)")
+    if isinstance(e, RawJavaScript):
+        return e.java_script
     return "function(e){return %s}" % e
+
+
+def raw(e):
+    return RawJavaScript(e)
 
 
 class RequestsStreamWrapper(object):
@@ -94,12 +117,10 @@ class JQL(object):
         return jql
 
     def map(self, f):
-        jql = self._clone()
-        jql.operations += ("map(%s)" % _f(f),)
-        return jql
+        return self.raw_filter(_f(f))
 
     def group_by(self, keys, accumulator):
-        if isinstance(keys, str) or isinstance(keys, six.text_type):
+        if not isinstance(keys, (tuple, set, list)):
             keys = [keys]
         jql = self._clone()
         jql.operations += ("groupBy([%s], %s)"
@@ -107,7 +128,7 @@ class JQL(object):
         return jql
 
     def group_by_user(self, keys, accumulator):
-        if isinstance(keys, str) or isinstance(keys, six.text_type):
+        if not isinstance(keys, (tuple, set, list)):
             keys = [keys]
         jql = self._clone()
         jql.operations += ("groupByUser([%s], %s)"
@@ -115,6 +136,9 @@ class JQL(object):
         return jql
 
     def query_plan(self):
+        return str(self)
+
+    def __str__(self):
         script = "function main() { return %s%s; }" %\
            (self.source, "".join(".%s" % i for i in self.operations))
         return script
@@ -128,4 +152,3 @@ class JQL(object):
             resp.raise_for_status()
             for row in ijson.items(RequestsStreamWrapper(resp), 'item'):
                 yield row
-
