@@ -171,6 +171,7 @@ shortcut syntax, use the ``raw(...)`` wrapper to insert whatever
 JavaScript you want into the ``filter``, ``map`` .etc parameters.
 
 .. code:: python
+
     from mixpanel_jql import JQL, raw
     ...
     query = JQL(api_secret, params)\
