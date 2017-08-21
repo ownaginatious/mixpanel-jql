@@ -26,6 +26,26 @@ class Reducer(object):
         return "mixpanel.reducer.sum(%s)" % accessor
 
     @staticmethod
+    def avg(accessor):
+        return "mixpanel.reducer.avg(%s)" % accessor
+
+    @staticmethod
+    def min(accessor):
+        return "mixpanel.reducer.min(%s)" % accessor
+
+    @staticmethod
+    def max(accessor):
+        return "mixpanel.reducer.max(%s)" % accessor
+
+    @staticmethod
+    def null():
+        return "mixpanel.reducer.null()"
+
+    @staticmethod
+    def any():
+        return "mixpanel.reducer.any()"
+
+    @staticmethod
     def numeric_summary(accessor):
         return "mixpanel.reducer.numeric_summary(%s)" % accessor
 
