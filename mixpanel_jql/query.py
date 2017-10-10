@@ -137,7 +137,9 @@ class JQL(object):
         return jql
 
     def map(self, f):
-        return self.raw_filter(_f(f))
+        jql = self._clone()
+        jql.operations += ("map(%s)" % _f(f),)
+        return jql
 
     def reduce(self, accumulator):
         jql = self._clone()
