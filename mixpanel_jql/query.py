@@ -102,7 +102,7 @@ class JQL(object):
     ENDPOINT = 'https://mixpanel.com/api/%s/jql'
     VERSION = '2.0'
 
-    def __init__(self, api_secret, params, events=True, people=False):
+    def __init__(self, api_secret, params, events=True, people=False,join_type='full'):
         """
         params      - parameters to the script
         filters     - an iterable of filters to apply (use list to guarantee a
@@ -117,7 +117,7 @@ class JQL(object):
         self.params = params
         self.operations = ()
         if events and people:
-            self.source = "join(Events(params), People())"
+            self.source = "join(Events(params), People(),{type:'%s'})" % join_type
         elif events:
             self.source = "Events(params)"
         elif people:
