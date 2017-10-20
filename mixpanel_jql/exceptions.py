@@ -1,4 +1,4 @@
-class JQLError(Exception):
+class JQLSyntaxError(Exception):
     pass
 
 
