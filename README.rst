@@ -88,7 +88,7 @@ results grouped and tallied by values of 'C' to see how many property
 
 .. code:: python
 
-    from mixpanel_jql import JQL, Reducer
+    from mixpanel_jql import JQL, Reducer, Events
 
     api_secret = '...'
 
@@ -268,17 +268,23 @@ JavaScript you want into the ``filter``, ``map`` .etc parameters.
 
     from mixpanel_jql import JQL, raw
     ...
-    query = JQL(api_secret, params)\
-              .filter(raw(
-                  " function(e) {"
-                  "   if (e.x > 3) {"
-                  "     return true;"
-                  "   } else {"
-                  "     return false;"
-                  "   }"
-                  " )"
-              ))\
-              .filter('e.properties.F == "hello"')\
+    query = JQL(
+                api_secret,
+                events=params
+            ).filter(
+                raw(
+                    " function(e) {"
+                    "   if (e.x > 3) {"
+                    "     return true;"
+                    "   } else {"
+                    "     return false;"
+                    "   }"
+                    " )"
+                )
+            ).filter(
+                'e.properties.F == "hello"'
+            )
+    ...
 
 This library cannot easily express everything possible in Mixpanel's JQL
 language, but does try to simplify the general cases. If you have some
