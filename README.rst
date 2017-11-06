@@ -24,22 +24,24 @@ This is simple and fast to do with this library.
 
 .. code:: python
 
-    from mixpanel_jql import JQL, Reducer
+    from datetime import datetime
+    from mixpanel_jql import JQL, Reducer, Events
 
     api_secret = '...'
 
-    params = {
-        'event_selectors': [{'event': "X"}],
-        'from_date': '2016-05-01',
-        'to_date': '2016-05-31'
-    }
-
-    query = JQL(api_secret, params)\
-              .group_by(
-                  keys=[
-                      "new Date(e.time).toISOString().split('T')[0]",
-                  ],
-                  accumulator=Reducer.count())
+    query = JQL(
+                api_secret,
+                events=Events({
+                    'event_selectors': [{'event': "X"}],
+                    'from_date': datetime(2016, 5, 1),
+                    'to_date': datetime(2016, 5, 31)
+                })
+            ).group_by(
+                keys=[
+                    "new Date(e.time).toISOString().split('T')[0]",
+                ],
+                accumulator=Reducer.count()
+            )
 
     for row in query.send():
         date = row['key'][0]
@@ -56,15 +58,22 @@ With some minor modification to our previous code, we can achieve this:
 
 .. code:: python
 
-    query = JQL(api_secret, params)\
-              .group_by_user(
-                  keys=[
-                      "new Date(e.time).toISOString().split('T')[0]",
-                  ],
-                  accumulator="function(){ return 1;}")\
-              .group_by(
-                  keys=["e.key.slice(1)"],
-                  accumulator=Reducer.count())
+    query = JQL(
+                api_secret,
+                events=Events({
+                    'event_selectors': [{'event': "X"}],
+                    'from_date': datetime(2016, 5, 1),
+                    'to_date': datetime(2016, 5, 31)
+                })
+            ).group_by_user(
+                keys=[
+                    "new Date(e.time).toISOString().split('T')[0]",
+                ],
+                accumulator="function(){ return 1;}"
+            ).group_by(
+                keys=["e.key.slice(1)"],
+                accumulator=Reducer.count()
+            )
 
 We replace our ``accumulator`` keyward argument with a JavaScript function returning ``1``, since each user will only be counted for once. ``group_by_user`` also adds the user ID into the key of our results. We can regroup our results by slicing that detail off with ``e.key.slice(1)`` and recounting.
 
@@ -83,21 +92,24 @@ results grouped and tallied by values of 'C' to see how many property
 
     api_secret = '...'
 
-    params = {
-        'event_selectors': [{'event': "A"}],
-        'from_date': '2016-04-01',
-        'to_date': '2016-04-30'
-    }
-
-    query = JQL(api_secret, params)\
-              .filter('e.properties.B == 2')\
-              .filter('e.properties.F == "hello"')\
-              .group_by(
-                  keys=[
-                      "new Date(e.time).toISOString().split('T')[0]",
-                      "e.property.C"
-                  ],
-                  accumulator=Reducer.count())
+    query = JQL(
+                api_secret,
+                events=Events({
+                    'event_selectors': [{'event': "A"}],
+                    'from_date': '2016-04-01',
+                    'to_date': '2016-04-30'
+                })
+            ).filter(
+                'e.properties.B == 2'
+            ).filter(
+                'e.properties.F == "hello"'
+            ).group_by(
+                keys=[
+                    "new Date(e.time).toISOString().split('T')[0]",
+                    "e.property.C"
+                ],
+                accumulator=Reducer.count()
+            )
 
     for row in query.send():
         date, c = row['key']
@@ -114,18 +126,27 @@ to just 1.
 
 .. code:: python
 
-    query = JQL(api_secret, params)\
-              .filter('e.properties.B == 2')\
-              .filter('e.properties.F == "hello"')\
-              .group_by_user(
-                  keys=[
-                      "new Date(e.time).toISOString().split('T')[0]",
-                      "e.property.C"
-                  ],
-                  accumulator="function(){ return 1;}")\
-              .group_by(
-                  keys=["e.key.slice(1)"],
-                  accumulator=Reducer.count())
+    query = JQL(
+                api_secret,
+                events=Events({
+                    'event_selectors': [{'event': "A"}],
+                    'from_date': '2016-04-01',
+                    'to_date': '2016-04-30'
+                })
+            ).filter(
+                'e.properties.B == 2'
+            ).filter(
+                'e.properties.F == "hello"'
+            ).group_by_user(
+                keys=[
+                    "new Date(e.time).toISOString().split('T')[0]",
+                    "e.property.C"
+                ],
+                accumulator="function(){ return 1;}"
+            ).group_by(
+                keys=["e.key.slice(1)"],
+                accumulator=Reducer.count()
+            )
 
 Why are your filters not joined with ``&&``?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -147,18 +168,91 @@ reducer shortcuts.
 To write your own reducer, make sure to include a full JavaScript
 function body (i.e. ``function(){ ... }``).
 
+What about queries over "people" and "joins"?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+All of the previous examples are concerned primarily with JQL queries
+over events. This library also supports queries over people and the join
+of people and events. The following gives a skeleton for how that works.
+
+You are free to use only one of ``events`` and ``people``. ``join_params``
+is only used if both ``events`` and ``people`` are set.
+
+.. code:: python
+
+    query = JQL(
+                api_secret,
+                events=Events({
+                    'event_selectors': [
+                        {
+                            'event': '...',
+                            'selector': '...',
+                            'label': '...'
+                        },
+                        ...
+                    ],
+                    'from_date': '<YYYY-MM-DD>',
+                    'to_date': '<YYYY-MM-DD>'
+                }),
+                people=People({
+                    'user_selectors': [
+                        {
+                            'selector': '...'
+                        },
+                        ...
+                    ]
+                }),
+                join_params={
+                    'type': 'full',
+                    'selectors': [
+                        {
+                            'event': '...',
+                            'selector': '...',
+                        },
+                        ...
+                    ]
+                }
+            ). ...
+
 How do I see what the final JavaScript sent to Mixpanel will be?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use the ``.query_plan()`` method on your JQL query to view what the
+Use ``str`` method on your JQL query to view what the
 equivalent JavaScript will be.
 
 .. code:: python
 
     >>> str(query)
-    'function main() { return Events(params).filter(function(e){return e.property.B == 2}).filter(function(e){return e.property.F == "hello"}).groupByUser([function(e){return new Date(e.time)).toISOString().split(\'T\')[0]},function(e){return e.property.C}], function(){ return 1;}).groupBy([function(e){return e.key.slice(1)}], mixpanel.reducer.count()); }'
+    'function main() { return Events({"event_selectors": [{"event": "A"}], "from_date": "2016-04-01", "to_date": "2016-04-30"}).filter(function(e){return e.properties.B == 2}).filter(function(e){return e.properties.F == "hello"}).groupByUser([function(e){return new Date(e.time).toISOString().split(\'T\')[0]},function(e){return e.property.C}], function(){ return 1;}).groupBy([function(e){return e.key.slice(1)}], mixpanel.reducer.count()); }'
 
 This can be quite helpful during debugging.
+
+But what if you want something actually readable? That's now possible too with the ``.pretty`` method!
+
+.. code:: python
+
+    >>> print(query.pretty)
+    function main() {
+        return Events({
+            "event_selectors": [{
+                "event": "A"
+            }],
+            "from_date": "2016-04-01",
+            "to_date": "2016-04-30"
+        }).filter(function(e) {
+            return e.properties.B == 2
+        }).filter(function(e) {
+            return e.properties.F == "hello"
+        }).groupByUser([function(e) {
+            return new Date(e.time).toISOString().split('T')[0]
+        }, function(e) {
+            return e.property.C
+        }], function() {
+            return 1;
+        }).groupBy([function(e) {
+            return e.key.slice(1)
+        }], mixpanel.reducer.count());
+    }
 
 Caveats
 -------
