@@ -1,7 +1,7 @@
 mixpanel-jql
 ============
 
-|PyPI Version| |Python Versions|
+|PyPI Version| |Python Versions| |Build Status|
 
 A small Python library for running `JQL <https://mixpanel.com/jql/>`__
 queries against Mixpanel's JQL API. The data returned from the API is
@@ -306,3 +306,6 @@ documentation `here <https://mixpanel.com/help/reference/jql>`__.
 
 .. |Python Versions| image:: https://img.shields.io/pypi/pyversions/requests.svg
     :target: https://github.com/ownaginatious/mixpanel-jql/blob/master/setup.py
+
+.. |Build Status| image:: https://travis-ci.org/ownaginatious/mixpanel-jql.svg?branch=add_travis_ci_testing
+    :target: https://travis-ci.org/ownaginatious/mixpanel-jql/
