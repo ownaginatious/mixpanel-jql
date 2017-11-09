@@ -1,3 +1,6 @@
+.. image:: https://badge.fury.io/py/mixpanel-jql.svg
+    :target: https://badge.fury.io/py/mixpanel-jql
+
 mixpanel-jql
 ============
 
