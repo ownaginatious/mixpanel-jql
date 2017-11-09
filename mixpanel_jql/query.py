@@ -16,6 +16,8 @@ import six
 
 from .exceptions import JQLSyntaxError, InvalidJavaScriptText
 
+warnings.simplefilter('default')
+
 
 class RawJavaScript(object):
 
