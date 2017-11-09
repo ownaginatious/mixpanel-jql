@@ -1,8 +1,7 @@
-.. image:: https://badge.fury.io/py/mixpanel-jql.svg
-    :target: https://badge.fury.io/py/mixpanel-jql
-
 mixpanel-jql
 ============
+
+|PyPI Version|
 
 A small Python library for running `JQL <https://mixpanel.com/jql/>`__
 queries against Mixpanel's JQL API. The data returned from the API is
@@ -301,3 +300,6 @@ Where can I learn more about Mixpanel's JQL?
 
 For more information on what you can do with JQL, refer to Mixpanel's
 documentation `here <https://mixpanel.com/help/reference/jql>`__.
+
+.. |PyPI Version| image:: https://badge.fury.io/py/mixpanel-jql.svg
+    :target: https://badge.fury.io/py/mixpanel-jql
