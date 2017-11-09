@@ -304,8 +304,8 @@ documentation `here <https://mixpanel.com/help/reference/jql>`__.
 .. |PyPI Version| image:: https://badge.fury.io/py/mixpanel-jql.svg
     :target: https://badge.fury.io/py/mixpanel-jql
 
-.. |Python Versions| image:: https://img.shields.io/pypi/pyversions/requests.svg
+.. |Python Versions| image:: https://img.shields.io/pypi/pyversions/mixpanel-jql.svg
     :target: https://github.com/ownaginatious/mixpanel-jql/blob/master/setup.py
 
-.. |Build Status| image:: https://travis-ci.org/ownaginatious/mixpanel-jql.svg?branch=add_travis_ci_testing
+.. |Build Status| image:: https://travis-ci.org/ownaginatious/mixpanel-jql.svg?branch=master
     :target: https://travis-ci.org/ownaginatious/mixpanel-jql/
