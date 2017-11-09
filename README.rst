@@ -1,6 +1,8 @@
 mixpanel-jql
 ============
 
+|PyPI Version| |Python Versions|
+
 A small Python library for running `JQL <https://mixpanel.com/jql/>`__
 queries against Mixpanel's JQL API. The data returned from the API is
 automatically decompressed as it arrives, making it available for
@@ -298,3 +300,9 @@ Where can I learn more about Mixpanel's JQL?
 
 For more information on what you can do with JQL, refer to Mixpanel's
 documentation `here <https://mixpanel.com/help/reference/jql>`__.
+
+.. |PyPI Version| image:: https://badge.fury.io/py/mixpanel-jql.svg
+    :target: https://badge.fury.io/py/mixpanel-jql
+
+.. |Python Versions| image:: https://img.shields.io/pypi/pyversions/requests.svg
+    :target: https://github.com/ownaginatious/mixpanel-jql/blob/master/setup.py
