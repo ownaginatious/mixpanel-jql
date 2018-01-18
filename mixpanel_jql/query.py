@@ -19,6 +19,32 @@ from .exceptions import JQLSyntaxError, InvalidJavaScriptText
 warnings.simplefilter('default')
 
 
+def _decode(entity):
+    """
+    Decodes all unicode characters to avoid the `u` prefix from
+    proliferating in complex data structures. We should probably
+    instead JSON encode everything, but for now, this is fine.
+
+    This is only needed as long as Python 2 support is necessary.
+
+    :param entity: The entity to decode.
+    :return: The iterable without unicode.
+    """
+
+    # Only necessary for Python 2
+    if six.PY3:
+        return entity
+    if isinstance(entity, tuple):
+        return tuple(_decode(e) for e in entity)
+    elif isinstance(entity, list):
+        return list(_decode(e) for e in entity)
+    elif isinstance(entity, dict):
+        return {_decode(k): _decode(v) for k, v in entity.items()}
+    elif isinstance(entity, six.text_type):
+        return entity.encode('utf8')
+    return entity
+
+
 class RawJavaScript(object):
 
     def __init__(self, java_script):
@@ -31,11 +57,36 @@ class RawJavaScript(object):
         return "RawJavaScript('%s')" % self.java_script
 
 
+class Converter(object):
+
+    def __init__(self, func):
+        self._func = func
+
+    def __str__(self):
+        return "mixpanel.%s" % self._func
+
+    def __repr__(self):
+        return "Converter('%s')" % str(self)
+
+    @staticmethod
+    def to_number(accessor):
+        return Converter('to_number(%s)' % _f(accessor))
+
+
 class Reducer(object):
+
+    def __init__(self, func):
+        self._func = func
+
+    def __str__(self):
+        return "mixpanel.reducer.%s" % self._func
+
+    def __repr__(self):
+        return "Reducer('%s')" % str(self)
 
     @staticmethod
     def _r(f):
-        return "mixpanel.reducer.%s" % f
+        return Reducer(f)
 
     @staticmethod
     def count():
@@ -43,23 +94,33 @@ class Reducer(object):
 
     @staticmethod
     def top(limit):
+        if not isinstance(limit, int):
+            raise JQLSyntaxError('limit in top must be an integer')
         return Reducer._r("top(%d)" % limit)
 
     @staticmethod
     def sum(accessor):
-        return Reducer._r("sum(%s)" % accessor)
+        return Reducer._r("sum(%s)" % _f(accessor))
 
     @staticmethod
     def avg(accessor):
-        return Reducer._r("avg(%s)" % accessor)
+        return Reducer._r("avg(%s)" % _f(accessor))
 
     @staticmethod
     def min(accessor):
-        return Reducer._r("(%s)" % accessor)
+        return Reducer._r("min(%s)" % _f(accessor))
+
+    @staticmethod
+    def min_by(accessor):
+        return Reducer._r("min_by(%s)" % _f(accessor))
 
     @staticmethod
     def max(accessor):
-        return Reducer._r("max(%s)" % accessor)
+        return Reducer._r("max(%s)" % _f(accessor))
+
+    @staticmethod
+    def max_by(accessor):
+        return Reducer._r("max_by(%s)" % _f(accessor))
 
     @staticmethod
     def null():
@@ -71,11 +132,39 @@ class Reducer(object):
 
     @staticmethod
     def numeric_summary(accessor):
-        return Reducer._r("numeric_summary(%s)" % accessor)
+        return Reducer._r("numeric_summary(%s)" % _f(accessor))
 
     @staticmethod
-    def object_merge(accessor):
-        return Reducer._r("object_merge(%s)" % accessor)
+    def numeric_percentiles(accessor, percentiles):
+        if not isinstance(percentiles, (int, tuple, list)):
+            raise JQLSyntaxError(
+                'percentiles in numeric_percentiles must be an integer or array')
+        if isinstance(percentiles, (tuple, list)):
+            for e in percentiles:
+                if not isinstance(e, int):
+                    raise JQLSyntaxError(
+                        'percentiles in numeric_percentiles as an array '
+                        'must only contain integers'
+                    )
+        return Reducer._r("numeric_percentiles(%s, %s)" % (_f(accessor), _decode(percentiles)))
+
+    @staticmethod
+    def numeric_bucket(accessor, buckets):
+        if not isinstance(buckets, (tuple, list, dict)):
+            raise JQLSyntaxError('buckets in numeric_bucket must be an array or dict')
+        return Reducer._r("numeric_bucket(%s, %s)" % (_f(accessor), _decode(buckets)))
+
+    @staticmethod
+    def object_merge():
+        return Reducer._r("object_merge()")
+
+    @staticmethod
+    def apply_group_limits(limits, global_limit):
+        if not isinstance(limits, (tuple, list)):
+            raise JQLSyntaxError('limits in apply_group_limits must be iterable')
+        if not isinstance(global_limit, int):
+            raise JQLSyntaxError('global_limit in apply_group_limits must be an integer')
+        return Reducer._r("applyGroupLimits(%s, %s)" % (_decode(limits), global_limit))
 
 
 def _f(e):
@@ -282,7 +371,24 @@ class JQL(object):
         jql.operations += ("map(%s)" % _f(f),)
         return jql
 
+    def flatten(self):
+        jql = self._clone()
+        jql.operations += ("flatten()",)
+        return jql
+
+    def sort_asc(self, accessor):
+        jql = self._clone()
+        jql.operations += ("sortAsc(%s)" % _f(accessor),)
+        return jql
+
+    def sort_desc(self, accessor):
+        jql = self._clone()
+        jql.operations += ("sortDesc(%s)" % _f(accessor),)
+        return jql
+
     def reduce(self, accumulator):
+        if not isinstance(accumulator, Reducer):
+            accumulator = _f(accumulator)
         jql = self._clone()
         jql.operations += ("reduce(%s)" % accumulator,)
         return jql
@@ -292,7 +398,7 @@ class JQL(object):
             keys = [keys]
         jql = self._clone()
         jql.operations += ("groupBy([%s], %s)"
-                           % (",".join(_f(k) for k in keys), accumulator),)
+                           % (", ".join(_f(k) for k in keys), _f(accumulator)),)
         return jql
 
     def group_by_user(self, keys, accumulator):
@@ -300,7 +406,7 @@ class JQL(object):
             keys = [keys]
         jql = self._clone()
         jql.operations += ("groupByUser([%s], %s)"
-                           % (",".join(_f(k) for k in keys), accumulator),)
+                           % (", ".join(_f(k) for k in keys), _f(accumulator)),)
         return jql
 
     def query_plan(self):
@@ -321,7 +427,7 @@ class JQL(object):
     def send(self):
         with closing(requests.post(self.ENDPOINT % self.VERSION,
                                    auth=HTTPBasicAuth(self.api_secret, ''),
-                                   data={'script': self.query_plan()},
+                                   data={'script': str(self)},
                                    stream=True)) as resp:
             resp.raise_for_status()
             for row in ijson.items(RequestsStreamWrapper(resp), 'item'):

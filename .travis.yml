@@ -8,7 +8,11 @@ python:
 # command to install dependencies
 install:
   - python ./setup.py install
+  - pip install coverage codecov
 
 # command to run tests
 script:
-  - python -m unittest discover tests
+  - coverage run ./setup.py test
+
+after_success:
+  - codecov

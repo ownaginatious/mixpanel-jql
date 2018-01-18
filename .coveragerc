@@ -1,0 +1,7 @@
+[run]
+branch = True
+omit =
+  mixpanel_jql/_version.py
+source =
+  mixpanel_jql
+

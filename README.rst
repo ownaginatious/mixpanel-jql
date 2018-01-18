@@ -1,7 +1,7 @@
 mixpanel-jql
 ============
 
-|PyPI Version| |Python Versions| |Build Status|
+|PyPI Version| |Python Versions| |Coverage| |Build Status|
 
 A small Python library for running `JQL <https://mixpanel.com/jql/>`__
 queries against Mixpanel's JQL API. The data returned from the API is
@@ -170,6 +170,17 @@ reducer shortcuts.
 To write your own reducer, make sure to include a full JavaScript
 function body (i.e. ``function(){ ... }``).
 
+What about conversions?
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``Converter`` class is another convenience for that.
+
+.. code:: python
+
+     from mixpanel_jql import Converter
+     ...
+     Converter.to_number('"xyz"')  # Resolves to mixpanel.to_number("xyz")
+
 What about queries over "people" and "joins"?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -215,6 +226,21 @@ is only used if both ``events`` and ``people`` are set.
                     ]
                 }
             ). ...
+
+What other functions are supported?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Mixpanel seems to be in a constant state of adding new functions beyond just ``filter`` and ``map``.
+The following are presently supported by this library. Refer to the code for their usage.
+
+- ``filter``
+- ``map``
+- ``flatten``
+- ``sort_asc``
+- ``sort_desc``
+- ``reduce``
+- ``group_by``
+- ``group_by_user``
 
 How do I see what the final JavaScript sent to Mixpanel will be?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -309,3 +335,7 @@ documentation `here <https://mixpanel.com/help/reference/jql>`__.
 
 .. |Build Status| image:: https://travis-ci.org/ownaginatious/mixpanel-jql.svg?branch=master
     :target: https://travis-ci.org/ownaginatious/mixpanel-jql/
+
+.. |Coverage| image:: https://codecov.io/gh/ownaginatious/mixpanel-jql/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/ownaginatious/mixpanel-jql
+
