@@ -63,6 +63,12 @@ class TestGroupTransformations(unittest.TestCase):
             'function main() { return Events({}).'
             '%s([e.a, e.b, e.c], e.properties.some_accessor); }' % expected_function)
 
+        self.assertEqual(
+            str(grouper([
+                raw('e.a'), raw('e.b'), raw('e.c')], Reducer.count())),
+            'function main() { return Events({}).'
+            '%s([e.a, e.b, e.c], mixpanel.reducer.count()); }' % expected_function)
+
         # Non iterable key.
         self.assertEqual(
             str(grouper(raw('e.a'), raw('e.properties.some_accessor'))),

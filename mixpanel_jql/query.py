@@ -394,19 +394,19 @@ class JQL(object):
         return jql
 
     def group_by(self, keys, accumulator):
-        if not isinstance(keys, (tuple, set, list)):
-            keys = [keys]
-        jql = self._clone()
-        jql.operations += ("groupBy([%s], %s)"
-                           % (", ".join(_f(k) for k in keys), _f(accumulator)),)
-        return jql
+        return self._group_by(False, keys, accumulator)
 
     def group_by_user(self, keys, accumulator):
+        return self._group_by(True, keys, accumulator)
+
+    def _group_by(self, user, keys, accumulator):
         if not isinstance(keys, (tuple, set, list)):
             keys = [keys]
+        if not isinstance(accumulator, Reducer):
+            accumulator = _f(accumulator)
         jql = self._clone()
-        jql.operations += ("groupByUser([%s], %s)"
-                           % (", ".join(_f(k) for k in keys), _f(accumulator)),)
+        op = "groupByUser" if user else "groupBy"
+        jql.operations += ("%s([%s], %s)" % (op, ", ".join(_f(k) for k in keys), accumulator),)
         return jql
 
     def query_plan(self):
